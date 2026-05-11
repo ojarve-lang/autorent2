@@ -3,7 +3,7 @@ USE autorent;
 
 CREATE TABLE IF NOT EXISTS cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    brand VARCHAR(100) NOT NULL,
+    mark VARCHAR(100) NOT NULL,
     model VARCHAR(100) NOT NULL,
     engine VARCHAR(50),
     fuel VARCHAR(50),
@@ -27,16 +27,20 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS reservations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     car_id INT NOT NULL,
-    user_name VARCHAR(100) NOT NULL,
-    user_email VARCHAR(150) NOT NULL,
+    customer_name VARCHAR(100) NOT NULL,
+    customer_email VARCHAR(150) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
     status VARCHAR(50) DEFAULT 'aktiivne',
     FOREIGN KEY (car_id) REFERENCES cars(id) ON DELETE CASCADE
 );
 
-INSERT INTO cars (brand, model, engine, fuel, price, image, year, transmission, seats, description, status) VALUES
+INSERT INTO cars (mark, model, engine, fuel, price, image, year, transmission, seats, description, status) VALUES
 ('Audi', 'Q8', 'V6', 'Bensiin', 120.00, 'https://loremflickr.com/400/250/audi', 2019, 'Automaat', 5, 'Luksuslik ja mugav maastur', 'vaba'),
 ('Mercedes', 'A-Class', 'V4', 'Bensiin', 90.00, 'https://loremflickr.com/400/250/mercedes', 2020, 'Automaat', 5, 'Kompaktne ja ökonoomne linnaauto', 'vaba'),
 ('BMW', 'X5', 'V6', 'Diisel', 140.00, 'https://loremflickr.com/400/250/bmw', 2021, 'Manuaal', 5, 'Võimas ja töökindel SUV', 'vaba'),
 ('Audi', 'R8', 'V10', 'Bensiin', 250.00, 'https://loremflickr.com/400/250/audi-r8', 2022, 'Automaat', 2, 'Sportlik ja kiire superauto', 'vaba');
+
+INSERT INTO users (username, email, password, role) VALUES
+('admin', 'admin@example.com', '$2y$10$8lkJzWQt.zZBnyC.PuIVNOC9tFPJ9iPkg79QsjgXEMfp8hHGWQvjq', 'admin');
