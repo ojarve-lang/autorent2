@@ -2,6 +2,11 @@
 include("../inc/db.php");
 
 $message = "";
+$messageType = "info";
+$customer_name = "";
+$customer_email = "";
+$start_date = "";
+$end_date = "";
 $car_id = $_GET['car_id'] ?? null;
 
 if (!$car_id) {
@@ -23,11 +28,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $start_date = $_POST["start_date"];
     $end_date = $_POST["end_date"];
 
-if (!filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
-    $message = "Palun sisesta korrektne email.";
-} elseif ($start_date > $end_date) {
-    $message = "Alguskuupäev ei saa olla hilisem kui lõppkuupäev.";
-} else {
+    if ($customer_name === "" || $customer_email === "" || $start_date === "" || $end_date === "") {
+        $message = "Palun täida kõik rentimise vormi väljad.";
+        $messageType = "danger";
+    } elseif (!filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Palun sisesta korrektne email.";
+        $messageType = "danger";
+    } elseif ($start_date > $end_date) {
+        $message = "Alguskuupäev ei saa olla hilisem kui lõppkuupäev.";
+        $messageType = "danger";
+    } else {
         $check = $conn->prepare("
             SELECT id FROM reservations
             WHERE car_id = ?
@@ -52,8 +62,11 @@ if (!filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
 
             if ($insert->execute()) {
                 $message = "Broneering lisatud! Kokku: " . number_format($total_price, 2) . " €";
+                $messageType = "success";
+                $customer_name = $customer_email = $start_date = $end_date = "";
             } else {
                 $message = "Broneeringu lisamine ebaõnnestus.";
+                $messageType = "danger";
             }
         }
     }
@@ -81,7 +94,7 @@ if (!filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
             <p><strong>Hind:</strong> <?= htmlspecialchars($car["price"] ?? "0") ?> € / päev</p>
 
             <?php if ($message): ?>
-                <div class="alert alert-info"><?= htmlspecialchars($message) ?></div>
+                <div class="alert alert-<?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
             <?php endif; ?>
 
             <h3 class="mt-4">Rendi auto</h3>
@@ -89,22 +102,22 @@ if (!filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
             <form method="POST">
                 <div class="mb-3">
                     <label class="form-label">Nimi</label>
-                    <input type="text" name="customer_name" class="form-control" required>
+                    <input type="text" name="customer_name" class="form-control" value="<?= htmlspecialchars($customer_name) ?>" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <input type="email" name="customer_email" class="form-control" required>
+                    <input type="email" name="customer_email" class="form-control" value="<?= htmlspecialchars($customer_email) ?>" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Alguskuupäev</label>
-                    <input type="date" name="start_date" class="form-control" required>
+                    <input type="date" name="start_date" class="form-control" value="<?= htmlspecialchars($start_date) ?>" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Lõppkuupäev</label>
-                    <input type="date" name="end_date" class="form-control" required>
+                    <input type="date" name="end_date" class="form-control" value="<?= htmlspecialchars($end_date) ?>" required>
                 </div>
 
                 <button class="btn btn-primary">Kinnita rent</button>

@@ -2,23 +2,35 @@
 include("../inc/db.php");
 
 $message = "";
+$messageType = "info";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["register"])) {
     $username = trim($_POST["username"]);
+    $email = trim($_POST["email"]);
     $password = $_POST["password"];
 
-    if ($username === "" || $password === "") {
-        $message = "Kasutajanimi ja parool on kohustuslikud.";
+    if ($username === "" || $email === "" || $password === "") {
+        $message = "Palun täida kõik väljad: kasutajanimi, e-post ja parool.";
+        $messageType = "danger";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Palun sisesta kehtiv e-posti aadress.";
+        $messageType = "danger";
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-        $stmt->bind_param("ss", $username, $hashed_password);
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $username, $email, $hashed_password);
 
         if ($stmt->execute()) {
-            $message = "Registreerimine õnnestus!";
+            $message = "Registreerimine õnnestus! Nüüd saad rentida autosid.";
+            $messageType = "success";
         } else {
-            $message = "See kasutajanimi on juba olemas.";
+            if ($stmt->errno === 1062) {
+                $message = "Kasutajanimi või e-post on juba kasutusel.";
+            } else {
+                $message = "Registreerimine ebaõnnestus. Proovi hiljem uuesti.";
+            }
+            $messageType = "danger";
         }
     }
 }
@@ -145,7 +157,7 @@ $cars = $conn->query("SELECT * FROM cars ORDER BY id DESC");
     </section>
 
     <?php if ($message): ?>
-        <div class="alert alert-info">
+        <div class="alert alert-<?= htmlspecialchars($messageType) ?>">
             <?= htmlspecialchars($message) ?>
         </div>
     <?php endif; ?>
@@ -157,11 +169,15 @@ $cars = $conn->query("SELECT * FROM cars ORDER BY id DESC");
             <form method="POST" class="row g-3">
                 <input type="hidden" name="register" value="1">
 
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <input type="text" name="username" class="form-control" placeholder="Kasutajanimi" required>
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-4">
+                    <input type="email" name="email" class="form-control" placeholder="E-post" required>
+                </div>
+
+                <div class="col-md-3">
                     <input type="password" name="password" class="form-control" placeholder="Parool" required>
                 </div>
 
